@@ -1,7 +1,7 @@
 """
-Mass Analyzer
+Distinct
 
-Easely look up IOCs through machines.
+Find potential Indicators of Compromise among similar Linux servers.
 """
 
 import os

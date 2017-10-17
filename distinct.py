@@ -36,11 +36,11 @@ def find_proc_cmd():
 
 
 def find_critical_bin_cmd():
-    commands_to_check = [ "ifconfig", "find", "ps", "netstat", "vim" ]
+    commands_to_check = ["ifconfig", "find", "ps", "netstat", "vim"]
     cmd = "md5_cmd=`which md5sum`; "
 
     for bin in commands_to_check:
-        cmd += bin+"_cmd=`which " + bin + "`; "
+        cmd += bin + "_cmd=`which " + bin + "`; "
 
     cmd += "$md5_cmd "
 
@@ -157,7 +157,7 @@ def get_arguments():
     parser.add_argument(
         '--criticalbin',
         action='store_true',
-        help='Compare critical binaries (ifconfig, find, ps, netstat) amongst servers')
+        help='Compare critical binaries (ifconfig, find, ps, netstat) amongst servers')  # noqa
     parser.add_argument(
         '--whitelist', type=str, help='Exclude those itens from the list')
 

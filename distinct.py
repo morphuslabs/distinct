@@ -83,7 +83,7 @@ def filter_uniq(numServers, concatfile, result, splitfn=None, whitelist=None):
         icolumns = sorted(enumerate(columns), key=lambda t: t[-1])
 
     for i, cmd in icolumns:
-        print("cmd = " + cmd)
+        #print("cmd = " + cmd)
         counter[cmd] = counter.get(cmd, 0) + 1
         posdc[cmd].append(i)
 

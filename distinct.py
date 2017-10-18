@@ -3,10 +3,6 @@
 Distinct
 
 Find potential Indicators of Compromise among similar Linux servers.
-
-Credits:
-Original idea and script from Morphus Labs.
-
 """
 
 import os
@@ -110,22 +106,22 @@ def filter_uniq(numServers, concatfile, result, splitfn=None, whitelist=None):
     return result
 
 def get_arguments():
-    parser = argparse.ArgumentParser(prog='mass-analyzer')
+    parser = argparse.ArgumentParser(prog='distinct')
  
-    parser.add_argument('-f', type=str, help="File with servers addresses", required=True, nargs=1)
-    parser.add_argument('-k', type=str, help="SSH 'pem' file", required=False, nargs=1)
-    parser.add_argument('-u', type=str, help="SSH username", required=True, nargs=1)
-    parser.add_argument('-o', type=str, help="Output dir", default="output")
+    parser.add_argument('-f', type=str, help='F is path of the file with the list of servers to be analyzed;', required=True, nargs=1)
+    parser.add_argument('-k', type=str, help='K is the path of the private key for the SSH public key authentication;', required=False, nargs=1)
+    parser.add_argument('-u', type=str, help='U is the username to be used on the SSH connection;', required=True, nargs=1)
+    parser.add_argument('-o', type=str, help="Optional output path. The default is 'output';", default="output")
 
-    parser.add_argument('--files', action='store_true', help='Search for uncommon files amongst servers')
-    parser.add_argument('--path', type=str,default="/")
-    parser.add_argument('--startDate', type=str, help='startDate help')
-    parser.add_argument('--endDate', type=str, help='endDate help')
+    parser.add_argument('--files', action='store_true', help='Switch to enable file list comparison. It supports these option additional arguments')
+    parser.add_argument('--path', type=str,default="/", help='Specify the find path (i.e: /var/www);')
+    parser.add_argument('--startDate', type=str, help='Initial date of the time range filter based on the file time criation/modification time;')
+    parser.add_argument('--endDate', type=str, help='Final date of the time range filter based on the file time criation/modification time;')
 
-    parser.add_argument('--listening', action='store_true', help='Search for uncommon listening services amongst servers')
-    parser.add_argument('--proc', action='store_true', help='Search for uncommon processes')
-    parser.add_argument('--criticalbin', action='store_true', help='Compare critical binaries (ifconfig, find, ps, netstat) amongst servers')
-    parser.add_argument('--whitelist', type=str, help='Exclude those itens from the list')
+    parser.add_argument('--listening', action='store_true', help='Switch to enable listening services comparison;')
+    parser.add_argument('--proc', action='store_true', help='Switch to enable proc list comparison;')
+    parser.add_argument('--criticalbin', action='store_true', help='Switch to enable critical binaries (find, ps and netstat) MD5 hash comparison;')
+    parser.add_argument('--whitelist', type=str, help='a file with a wordlist (one per line) to be excluded from the comparisons;')
     parser.add_argument('--sudo', action='store_true', help="Use 'sudo' while executing commands on remote servers")
 
     args = parser.parse_args()
@@ -136,11 +132,6 @@ if __name__ == "__main__":
 
     args = get_arguments()
 
-    #if (not args.find and not args.listening and not args.proc):
-    #    print "You have to choose at least one action."
-    #    exit()    
-
-    #print args
     key = args.k[0]
     serverlist = args.f[0]
     username=args.u[0]

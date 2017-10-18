@@ -1,7 +1,12 @@
+#!/usr/bin/env python
 """
 Distinct
 
 Find potential Indicators of Compromise among similar Linux servers.
+
+Credits:
+Original idea and script from Morphus Labs.
+
 """
 
 import os
@@ -13,7 +18,8 @@ from functools import reduce
 
 
 def find_file_cmd(path, startDate, endDate):
-    cmd = "sudo find " + path + " -xdev -type f"
+
+    cmd = "find " + path + " -xdev -type f"
 
     if startDate:
         cmd += " -newerct "+startDate
@@ -22,63 +28,64 @@ def find_file_cmd(path, startDate, endDate):
         cmd += " ! -newerct "+endDate
 
     cmd += " -exec ls -l {} \;"
-    return cmd
 
+    return cmd
 
 def find_listening_cmd():
-    cmd = "sudo netstat -tulpn"
-    return cmd
 
+    cmd = "netstat -tulpn"
+
+    return cmd
 
 def find_proc_cmd():
-    cmd = "sudo ps aux"
+    
+    cmd = "ps aux"
+
     return cmd
 
-
 def find_critical_bin_cmd():
-<<<<<<< HEAD
-    commands_to_check = [ "ifconfig", "find", "ps", "netstat" ]
-=======
-    commands_to_check = ["ifconfig", "find", "ps", "netstat", "vim"]
->>>>>>> 092c69abfde604f216c93c8bf765b624f3c1b2dc
+    
+    commands_to_check = [ "ifconfig", "find", "ps", "netstat", "vim" ]
+
     cmd = "md5_cmd=`which md5sum`; "
 
-    for bin in commands_to_check:
-        cmd += bin + "_cmd=`which " + bin + "`; "
-
+    for bin in commands_to_check: 
+        cmd += bin+"_cmd=`which " + bin + "`; "
+    
     cmd += "$md5_cmd "
 
     for bin in commands_to_check:
-        cmd += "$" + bin + "_cmd "
+        cmd += "$" + bin + "_cmd " 
 
     return cmd
+    
 
+def execute(conn, cmd, output, sudo):
 
-def execute(server, conn, cmd, output):
-    """
-    :param server: server name
-    :param conn: connection
-    :param cmd: command to be executed
-    :param output: filepath to write output to
-    """
-    output = open(output, "a")
+    output = open(output, "a") 
 
-    print("Executing {}".format(cmd))
-    stdin, stdout, stderr = conn.exec_command(cmd)
+    if sudo:
+        cmd = "sudo " + cmd
 
-    columns = stdout.read().splitlines()
-    content = '\n'.join(map(lambda l: server + "\t" + l, columns))
+    print "Executing {}".format( cmd )
+    stdin , stdout, stderr = conn.exec_command(cmd)
+
+    content = '\n'.join(map(lambda l: server + "\t" + l, stdout.read().splitlines()))
     output.write(content)
     output.write("\n")
+
     output.close()
+
 
 
 def filter_uniq(numServers, concatfile, result, splitfn=None, whitelist=None):
     counter = OrderedDict()
     posdc = defaultdict(list)
-    copy = lambda v: v  # noqa: E731
+    machine_count = 0
+    copy = lambda v: v
     splitfn = copy if splitfn is None else splitfn
     whitelist = list() if whitelist is None else whitelist
+    
 
     with open(concatfile) as fs:
         lines = list(map(lambda line: line.strip(), fs.readlines()))
@@ -87,110 +94,63 @@ def filter_uniq(numServers, concatfile, result, splitfn=None, whitelist=None):
         icolumns = sorted(enumerate(columns), key=lambda t: t[-1])
 
     for i, cmd in icolumns:
-        #print("cmd = " + cmd)
+        #print "cmd = " + cmd
         counter[cmd] = counter.get(cmd, 0) + 1
         posdc[cmd].append(i)
 
+    
     result_file = open(result, "w")
-
-    unusual = (
-        posdc[cmd]
-        for cmd, count in counter.items()
-        if count < numServers)
-
-    for line_num in reduce(lambda a, b: a+b, unusual, []):
-        line = lines[line_num]
-
+    for line_num in reduce(lambda a, b: a+b, [posdc[cmd] for cmd, count in counter.items() if count < numServers], []):
+        line = lines[line_num] 
         if not any(map(lambda v: v in line, whitelist)):
-            print(line)
+            print line
             result_file.write(line+'\n')
-
+    
     result_file.close()
     return result
 
-
 def get_arguments():
     parser = argparse.ArgumentParser(prog='mass-analyzer')
+ 
+    parser.add_argument('-f', type=str, help="File with servers addresses", required=True, nargs=1)
+    parser.add_argument('-k', type=str, help="SSH 'pem' file", required=False, nargs=1)
+    parser.add_argument('-u', type=str, help="SSH username", required=True, nargs=1)
+    parser.add_argument('-o', type=str, help="Output dir", default="output")
 
-    parser.add_argument(
-        '-f',
-        type=str,
-        help="File with servers addresses",
-        required=True,
-        nargs=1)
-    parser.add_argument(
-        '-k',
-        type=str,
-        help="SSH 'pem' file",
-        required=False,
-        nargs=1)
-    parser.add_argument(
-        '-u',
-        type=str,
-        help="SSH username",
-        required=True,
-        nargs=1)
-    parser.add_argument(
-        '-o',
-        type=str,
-        help="Output dir",
-        default="output")
+    parser.add_argument('--files', action='store_true', help='Search for uncommon files amongst servers')
+    parser.add_argument('--path', type=str,default="/")
+    parser.add_argument('--startDate', type=str, help='startDate help')
+    parser.add_argument('--endDate', type=str, help='endDate help')
 
-    parser.add_argument(
-        '--files',
-        action='store_true',
-        help='Search for uncommon files amongst servers')
-    parser.add_argument(
-        '--path',
-        type=str, default="/")
-    parser.add_argument(
-        '--startDate',
-        type=str, help='startDate help')
-    parser.add_argument(
-        '--endDate',
-        type=str, help='endDate help')
-
-    parser.add_argument(
-        '--listening',
-        action='store_true',
-        help='Search for uncommon listening services amongst servers')
-    parser.add_argument(
-        '--proc',
-        action='store_true',
-        help='Search for uncommon processes')
-    parser.add_argument(
-        '--criticalbin',
-        action='store_true',
-        help='Compare critical binaries (ifconfig, find, ps, netstat) amongst servers')  # noqa
-    parser.add_argument(
-        '--whitelist', type=str, help='Exclude those itens from the list')
+    parser.add_argument('--listening', action='store_true', help='Search for uncommon listening services amongst servers')
+    parser.add_argument('--proc', action='store_true', help='Search for uncommon processes')
+    parser.add_argument('--criticalbin', action='store_true', help='Compare critical binaries (ifconfig, find, ps, netstat) amongst servers')
+    parser.add_argument('--whitelist', type=str, help='Exclude those itens from the list')
+    parser.add_argument('--sudo', action='store_true', help="Use 'sudo' while executing commands on remote servers")
 
     args = parser.parse_args()
+
     return args
 
+if __name__ == "__main__":
 
-def validate_args(args, arg1, arg2):
-    """
-    Given arg2 was provided, verify that arg1 is also provided.
-
-    :returns: None if validation does not make sense. True if
-    validation passes; False, otherwise.
-    """
-    if arg1 in args:
-        return arg2 in args
-
-
-def main():
     args = get_arguments()
 
+    #if (not args.find and not args.listening and not args.proc):
+    #    print "You have to choose at least one action."
+    #    exit()    
+
+    #print args
     key = args.k[0]
     serverlist = args.f[0]
-    username = args.u[0]
-    whitelist = args.whitelist
+    username=args.u[0]
+    whitelist=args.whitelist
     k = client.RSAKey.from_private_key_file(key)
     conn = client.SSHClient()
     conn.set_missing_host_key_policy(client.AutoAddPolicy())
     outputdir = args.o
+    sudo = False
+    sudo = args.sudo
 
     try:
         os.stat(outputdir)
@@ -203,95 +163,61 @@ def main():
     if whitelist:
         with open(whitelist) as w:
             whitelist = list(map(lambda l: l.strip(), w.readlines()))
+    
+    servers = [x.strip() for x in content]    
 
-    servers = [x.strip() for x in content]
+    outputFindFile = outputdir + "/findFile.txt"
+    open(outputFindFile, "w").close()
+    outputFindListening = outputdir + "/findListening.txt"
+    open(outputFindListening, "w").close()
+    outputFindProc = outputdir + "/findProc.txt"
+    open(outputFindProc, "w").close()
+    outputCriticalBin = outputdir + "/criticalBin.txt"
+    open(outputCriticalBin, "w").close()
+    result_find_file = outputdir + "/uncommon_files.txt"
+    result_find_listening = outputdir + "/uncommon_listening.txt"
+    result_find_proc = outputdir + "/uncommon_proc.txt"
+    result_find_critical_bin = outputdir + "/uncommon_bin_hashes.txt"
 
-    outputFindFile = os.path.join(outputdir, "findFile.txt")
-    outputFindListening = os.path.join(outputdir, "findListening.txt")
-    outputFindProc = os.path.join(outputdir, "findProc.txt")
-    outputCriticalBin = os.path.join(outputdir, "criticalBin.txt")
 
-    result_find_file = os.path.join(outputdir, "uncommon_files.txt")
-    result_find_listening = os.path.join(outputdir, "uncommon_listening.txt")
-    result_find_proc = os.path.join(outputdir, "uncommon_proc.txt")
-    result_find_critical_bin = os.path.join(outputdir, "uncommon_bin_hashes.txt")  # noqa: E501
 
     for server in servers:
-        print("connecting to", server)
-        conn.connect(hostname=server, username=username, pkey=k)
-        print("connected")
+        print "connecting to ", server
+        conn.connect( hostname = server, username = username, pkey = k )
+        print "connected"
 
         if (args.criticalbin):
-            execute(
-                server,
-                conn,
-                find_critical_bin_cmd(),
-                outputCriticalBin)
-
+            execute(conn, find_critical_bin_cmd(), outputCriticalBin, sudo)
+        
         if (args.files):
-            execute(
-                server,
-                conn,
-                find_file_cmd(args.path, args.startDate, args.endDate),
-                outputFindFile)
+            execute(conn, find_file_cmd(args.path, args.startDate, args.endDate), outputFindFile, sudo)
 
         if (args.listening):
-            execute(
-                server,
-                conn,
-                find_listening_cmd(),
-                outputFindListening)
-
+            execute(conn, find_listening_cmd(), outputFindListening, sudo)
+        
         if (args.proc):
-            execute(
-                server,
-                conn,
-                find_proc_cmd(),
-                outputFindProc)
+            execute(conn, find_proc_cmd(), outputFindProc, sudo)
 
         conn.close()
 
-    print("\n")
+    print "\n"
     if (args.criticalbin):
-        print("CRITICAL BINARIES COMPARISION:\n")
-        filter_uniq(
-            len(servers),
-            outputCriticalBin,
-            result_find_critical_bin,
-            lambda v: v.split(" ")[0],
-            whitelist=whitelist)
-        print("\n")
+        print "CRITICAL BINARIES COMPARISION:\n"
+        filter_uniq(len(servers), outputCriticalBin, result_find_critical_bin, lambda v: v.split(" ")[0], whitelist=whitelist)
+        print "\n"
 
     if (args.files):
-        print("UNCOMMON FILES:\n")
-        filter_uniq(
-            len(servers),
-            outputFindFile,
-            result_find_file,
-            lambda v: v.split(" ")[-1],
-            whitelist=whitelist)
-        print("\n")
-
+        print "UNCOMMON FILES:\n"
+        filter_uniq(len(servers), outputFindFile, result_find_file, lambda v: v.split(" ")[-1], whitelist=whitelist)
+        print "\n"
+    
     if (args.listening):
-        print("UNCOMMON LISTENING PROCESSES:\n")
-        filter_uniq(
-            len(servers),
-            outputFindListening,
-            result_find_listening,
-            lambda v: v.split("/")[-1],
-            whitelist=whitelist)
-        print("\n")
-
+        print "UNCOMMON LISTENING PROCESSES:\n"
+        filter_uniq(len(servers), outputFindListening, result_find_listening, lambda v: v.split("/")[-1], whitelist=whitelist)
+        print "\n"
+    
     if (args.proc):
-        print("UNCOMMON PROCESSES:\n")
-        filter_uniq(
-            len(servers),
-            outputFindProc,
-            result_find_proc,
-            lambda v: v.split(" ")[-1],
-            whitelist=whitelist)
-        print("\n")
+        print "UNCOMMON PROCESSES:\n"
+        filter_uniq(len(servers), outputFindProc, result_find_proc, lambda v: v.split(" ")[-1], whitelist=whitelist)
+        print "\n"
 
-
-if __name__ == "__main__":
-    main()

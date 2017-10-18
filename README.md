@@ -33,6 +33,7 @@ python distinct.py -f serverlist.txt -f serverlist.txt -u ssh-user -k sshkey.pem
 
 ## Credits
 Original idea and script from Morphus Labs (morphuslabs.com)
+
 Team: @renato_marinho, @italomaia
 
 

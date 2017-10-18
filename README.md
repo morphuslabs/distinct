@@ -1,7 +1,7 @@
 # Distinct
 A simple script to look for potential Indicators of Compromise among similar Linux servers.
 
-Distinct's approach consists in comparing some characteristics of a group of similar servers do detect the outliers, that is, those that do not follow "the pattern". The selected characteristics for this first version are: list of files, list of listening services and list of processes. It may be useful as a primary source of suspicious indicators to be considered while responding to an incident, especially when there isn’t file integrity monitor or other HIDS features in place.
+Distinct's approach consists in comparing some characteristics of a group of similar servers do detect the outliers, that is, those that do not follow "the pattern". The compared characteristics for this first version are: list of files, list of listening services and list of processes. It may be useful as a primary source of suspicious indicators to be considered while responding to an incident, especially when there isn’t file integrity monitor or other HIDS features in place.
 
 It is important mentioning that having no indication of anomalous files or processes detected by Distinct, does not mean that there is no breached server. An attacker may delete its track and/or use kernel level rootkits to hide processes from tools like “ps” and “netstat”– even the legitimate ones. 
 
@@ -21,19 +21,15 @@ Then, it basically compares the results by sorting the lists and counting the it
 
 ## Install
 
-```bash
 git https://github.com/morphuslabs/distinct.git
-cd distinct
 
 pip install paramiko
-```
+
 ## Example
 
-```
 Looking for uncommon files on a given path, created or modified on a given period, on a group of servers:
 
 python distinct.py -f serverlist.txt -f serverlist.txt -u ssh-user -k sshkey.pem --files --path=/var --startDate=2017-10-01 --endDate=2017-10-19 --whitelist=whitelist.txt
-```
 
 ## Credits
 Original idea and script from Morphus Labs (morphuslabs.com)

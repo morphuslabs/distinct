@@ -36,7 +36,7 @@ def find_proc_cmd():
 
 
 def find_critical_bin_cmd():
-    commands_to_check = [ "ifconfig", "find", "ps", "netstat", "vim" ]
+    commands_to_check = [ "ifconfig", "find", "ps", "netstat" ]
     cmd = "md5_cmd=`which md5sum`; "
 
     for bin in commands_to_check:

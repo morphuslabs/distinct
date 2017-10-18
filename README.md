@@ -37,7 +37,4 @@ python distinct.py -f serverlist.txt -f serverlist.txt -u ssh-user -k sshkey.pem
 ## Credits
 Original idea and script from Morphus Labs (morphuslabs.com)
 
-Team: @renato_marinho, @italomaia
-
-
-
+Team: [@renato_marinho](https://twitter.com/renato_marinho), [@italomaia](https://twitter.com/italomaia)

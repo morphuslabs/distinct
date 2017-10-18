@@ -22,7 +22,7 @@ Then, it basically compares the results by sorting the lists and counting the it
 ## Install
 
 ```
-git https://github.com/morphuslabs/distinct.git
+git clone https://github.com/morphuslabs/distinct.git
 pip install paramiko
 ```
 

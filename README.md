@@ -34,6 +34,9 @@ Looking for uncommon files on a given path, created or modified on a given perio
 python distinct.py -f serverlist.txt -f serverlist.txt -u ssh-user -k sshkey.pem --files --path=/var --startDate=2017-10-01 --endDate=2017-10-19 --whitelist=whitelist.txt
 ```
 
+![Looking for uncommon files among servers](https://cdn-images-1.medium.com/max/1600/0*h7LtQlJ7hf6kaUlg.png)
+Figure: Looking for uncommon files among servers
+
 ## Credits
 Original idea and script from Morphus Labs (morphuslabs.com)
 

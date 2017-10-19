@@ -1,5 +1,5 @@
 # Distinct
-A simple script to look for potential Indicators of Compromise among similar Linux servers.
+A simple script to compare your similar Linux cloud application servers with each other to discover possible indications of compromise.
 
 Distinct's approach consists in comparing some characteristics of a group of similar servers do detect the outliers, that is, those that do not follow "the pattern" and may have been compromised. The compared characteristics for this first version are: list of files, list of listening services and list of processes. It may be useful as a primary source of suspicious indicators to be analyzed while responding to an incident, especially when there isn’t file integrity monitor or other HIDS features in place.
 

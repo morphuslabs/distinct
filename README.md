@@ -7,7 +7,7 @@ It is important mentioning that having no indication of anomalous files or proce
 
 I hope the tool may be useful for other people within similar hunting scenarios or even for system administrators willing to find configuration errors on a bunch of servers. Feel free to extend the tool to support other comparisons, like system users and, who knows, to support analyzing Windows Servers.
 
-## Hot it works
+## How it works
 
 First, the tool receives a list of servers as input and performs the following information gathering tasks through remote SSH command execution:
 

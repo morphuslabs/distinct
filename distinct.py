@@ -209,6 +209,6 @@ if __name__ == "__main__":
     
     if (args.proc):
         print "UNCOMMON PROCESSES:\n"
-        filter_uniq(len(servers), outputFindProc, result_find_proc, lambda v: v.split(" ")[-1], whitelist=whitelist)
+        filter_uniq(len(servers), outputFindProc, result_find_proc, lambda v: v.split()[10], whitelist=whitelist)
         print "\n"
 

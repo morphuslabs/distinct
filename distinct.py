@@ -14,7 +14,6 @@ from functools import reduce
 
 
 def find_file_cmd(path, startDate, endDate):
-
     cmd = "find " + path + " -xdev -type f"
 
     if startDate:
@@ -24,32 +23,24 @@ def find_file_cmd(path, startDate, endDate):
         cmd += " ! -newerct "+endDate
 
     cmd += " -exec ls -l {} \;"
-
     return cmd
 
 def find_listening_cmd():
-
     cmd = "netstat -tulpn"
-
     return cmd
 
 def find_proc_cmd():
-    
     cmd = "ps aux"
-
     return cmd
 
 def find_critical_bin_cmd():
-    
     commands_to_check = [ "ifconfig", "find", "ps", "netstat", "vim" ]
 
     cmd = "md5_cmd=`which md5sum`; "
-
     for bin in commands_to_check: 
         cmd += bin+"_cmd=`which " + bin + "`; "
     
     cmd += "$md5_cmd "
-
     for bin in commands_to_check:
         cmd += "$" + bin + "_cmd " 
 
@@ -57,21 +48,19 @@ def find_critical_bin_cmd():
     
 
 def execute(conn, cmd, output, sudo):
-
     output = open(output, "a") 
 
     if sudo:
         cmd = "sudo " + cmd
 
-    print "Executing {}".format( cmd )
-    stdin , stdout, stderr = conn.exec_command(cmd)
+    print("Executing {}".format(cmd))
+    stdin, stdout, stderr = conn.exec_command(cmd)
 
     content = '\n'.join(map(lambda l: server + "\t" + l, stdout.read().splitlines()))
     output.write(content)
     output.write("\n")
 
     output.close()
-
 
 
 def filter_uniq(numServers, concatfile, result, splitfn=None, whitelist=None):
@@ -82,7 +71,6 @@ def filter_uniq(numServers, concatfile, result, splitfn=None, whitelist=None):
     splitfn = copy if splitfn is None else splitfn
     whitelist = list() if whitelist is None else whitelist
     
-
     with open(concatfile) as fs:
         lines = list(map(lambda line: line.strip(), fs.readlines()))
         lines = filter(lambda line: line.strip(), lines)
@@ -90,20 +78,19 @@ def filter_uniq(numServers, concatfile, result, splitfn=None, whitelist=None):
         icolumns = sorted(enumerate(columns), key=lambda t: t[-1])
 
     for i, cmd in icolumns:
-        #print "cmd = " + cmd
         counter[cmd] = counter.get(cmd, 0) + 1
         posdc[cmd].append(i)
 
-    
     result_file = open(result, "w")
     for line_num in reduce(lambda a, b: a+b, [posdc[cmd] for cmd, count in counter.items() if count < numServers], []):
         line = lines[line_num] 
         if not any(map(lambda v: v in line, whitelist)):
-            print line
+            print(line)
             result_file.write(line+'\n')
     
     result_file.close()
     return result
+
 
 def get_arguments():
     parser = argparse.ArgumentParser(prog='distinct')
@@ -125,11 +112,10 @@ def get_arguments():
     parser.add_argument('--sudo', action='store_true', help="Use 'sudo' while executing commands on remote servers")
 
     args = parser.parse_args()
-
     return args
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     args = get_arguments()
 
     key = args.k[0]
@@ -165,17 +151,16 @@ if __name__ == "__main__":
     open(outputFindProc, "w").close()
     outputCriticalBin = outputdir + "/criticalBin.txt"
     open(outputCriticalBin, "w").close()
+
     result_find_file = outputdir + "/uncommon_files.txt"
     result_find_listening = outputdir + "/uncommon_listening.txt"
     result_find_proc = outputdir + "/uncommon_proc.txt"
     result_find_critical_bin = outputdir + "/uncommon_bin_hashes.txt"
 
-
-
     for server in servers:
-        print "connecting to ", server
+        print("connecting to ", server)
         conn.connect( hostname = server, username = username, pkey = k )
-        print "connected"
+        print("connected")
 
         if (args.criticalbin):
             execute(conn, find_critical_bin_cmd(), outputCriticalBin, sudo)
@@ -191,24 +176,23 @@ if __name__ == "__main__":
 
         conn.close()
 
-    print "\n"
+    print("\n")
     if (args.criticalbin):
-        print "CRITICAL BINARIES COMPARISION:\n"
+        print("CRITICAL BINARIES COMPARISION:\n")
         filter_uniq(len(servers), outputCriticalBin, result_find_critical_bin, lambda v: v.split(" ")[0], whitelist=whitelist)
-        print "\n"
+        print("\n")
 
     if (args.files):
-        print "UNCOMMON FILES:\n"
+        print("UNCOMMON FILES:\n")
         filter_uniq(len(servers), outputFindFile, result_find_file, lambda v: v.split(" ")[-1], whitelist=whitelist)
-        print "\n"
+        print("\n")
     
     if (args.listening):
-        print "UNCOMMON LISTENING PROCESSES:\n"
+        print("UNCOMMON LISTENING PROCESSES:\n")
         filter_uniq(len(servers), outputFindListening, result_find_listening, lambda v: v.split("/")[-1], whitelist=whitelist)
-        print "\n"
+        print("\n")
     
     if (args.proc):
-        print "UNCOMMON PROCESSES:\n"
+        print("UNCOMMON PROCESSES:\n")
         filter_uniq(len(servers), outputFindProc, result_find_proc, lambda v: v.split()[10], whitelist=whitelist)
-        print "\n"
-
+        print("\n")
